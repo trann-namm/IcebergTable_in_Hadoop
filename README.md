@@ -4,14 +4,14 @@ This project demonstrates the use of **Apache Iceberg** tables within **HDFS**. 
 
 ---
 ## **Table of Content**
-- [Project Structure](#project-structure)
-- [Services](#services)
-- [Prerequisites](#prerequisites)
-- [Setup and Run](#setup-and-run)
-- [Usage](#usage)
-- [Common Issues](#common-issues)
-- [Visuals](#visuals)
-- [Stop and Clean Up](#stop-and-clean-up)
+- [Project Structure](#-project-structure)
+- [Services](#-services)
+- [Prerequisites](#-prerequisites)
+- [Setup and Run](#-setup-and-run)
+- [Usage](#-usage)
+- [Common Issues](#-common-issues)
+- [Visuals](#-visuals)
+- [Stop and Clean Up](#-stop-and-clean-up)
 - [Contributing](#contributing)
 
 ---
@@ -167,7 +167,7 @@ To stop all services and clean up containers:
 
 ---
 
-## 🧑‍💻 **Contributing**
+## **Contributing**
 
 We welcome contributions! To contribute:
 1. Fork the repository.
