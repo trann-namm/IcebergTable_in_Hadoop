@@ -1,0 +1,6 @@
+**current
+in_use.lock
+**/.ipynb_checkpoints
+**/__pycache__
+**/metastore_db
+**/spark-warehouse

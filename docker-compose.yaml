@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: startup-mysql
+    environment:
+      MYSQL_DATABASE: startup_db
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    networks:
+      hdfs_network:
+        ipv4_address: 172.20.0.7
+
+  spark:
+    build:
+      context: ./spark
+    user: "trannam" 
+    depends_on:
+      - namenode
+    #restart: always
+    environment:
+      SPARK_MASTER: "local[*]"
+      HADOOP_USER_NAME: "trannam"
+      HADOOP_CONF_DIR: ./hadoop_config
+    ports:
+      - 4040:4040
+    volumes:
+      - ./spark:/app
+    env_file:
+      - ./.env 
+    command: >
+      bash -c "spark-submit /app/app.py"
+    networks:
+      hdfs_network:
+        ipv4_address: 172.20.0.6
+
+  jupyter:
+    build: ./notebooks  # Use custom Dockerfile
+    ports:
+      - "8888:8888"
+    environment:
+      - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=
+      - NB_USER=trannam 
+    volumes:
+      - ./notebooks:/home/trannam/work
+    #  - ./config.py:/home/trannam/work/config.py
+    networks:
+      hdfs_network:
+        ipv4_address: 172.20.0.5
+
+  namenode:
+    image: apache/hadoop:3.3.6
+    container_name: namenode
+    hostname: namenode
+    user: root
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+    volumes:
+      - ./hadoop_namenode:/opt/hadoop/data/nameNode
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+      - ./start-hdfs.sh:/start-hdfs.sh
+    ports:
+      - "9870:9870"
+    command: [ "/bin/bash", "/start-hdfs.sh" ]
+    networks:
+      hdfs_network:
+        ipv4_address: 172.20.0.2
+
+  datanode1:
+    image: apache/hadoop:3.3.6
+    container_name: datanode1
+    hostname: datanode1
+    user: root
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+    volumes:
+      - ./hadoop_datanode1:/opt/hadoop/data/dataNode1
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+      - ./init-datanode.sh:/init-datanode.sh
+    depends_on:
+      - namenode
+    command: [ "/bin/bash", "/init-datanode.sh" ]
+    networks:
+      hdfs_network:
+        ipv4_address: 172.20.0.3
+
+  datanode2:
+    # Similar configuration to datanode1, with different container_name and IP
+    image: apache/hadoop:3.3.6
+    container_name: datanode2
+    hostname: datanode2
+    user: root
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+    volumes:
+      - ./hadoop_datanode1:/opt/hadoop/data/dataNode2
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+      - ./init-datanode.sh:/init-datanode.sh
+    depends_on:
+      - namenode
+    command: [ "/bin/bash", "/init-datanode.sh" ]
+    networks:
+      hdfs_network:
+        ipv4_address: 172.20.0.4
+
+networks:
+  hdfs_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
